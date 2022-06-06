@@ -384,6 +384,22 @@ impl<D: AsMut<[u8]>, F: CryptoFactory + Default> DataPayloadCreator<D, F> {
         self
     }
 
+    /// Sets whether the ADR is enabled
+    ///
+    /// # Argument
+    ///
+    /// * confirmed - whether the packet is confirmed or unconfirmed.
+    pub fn set_adr(&mut self, adr: bool) -> &mut Self {
+        let d = self.data.as_mut();
+        if adr {
+            d[5] |= 0x80;
+        } else {
+            d[5] &= 0x7f;
+        }
+
+        self
+    }
+
     /// Sets the device address of the DataPayload to the provided value.
     ///
     /// # Argument
