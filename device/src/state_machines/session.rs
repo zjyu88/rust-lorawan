@@ -162,7 +162,8 @@ impl Idle {
             .set_fctrl(&fctrl)
             .set_f_port(data.fport)
             .set_dev_addr(*self.session.devaddr())
-            .set_fcnt(fcnt);
+            .set_fcnt(fcnt)
+            .set_adr(true);
 
         let mut cmds = Vec::new();
         shared.mac.get_cmds(&mut cmds);
