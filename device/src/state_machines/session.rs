@@ -173,6 +173,7 @@ impl Idle {
                 panic!("dyn_cmds too small compared to cmds")
             }
         }
+        println!("prepare_buffer");
 
         match phy.build(
             data.data,
@@ -205,6 +206,7 @@ impl Idle {
                         .create_tx_config(random as u8, shared.datarate, &Frame::Data),
                     shared.tx_buffer.as_ref(),
                 );
+                println!("session SendDataRequest1111");
 
                 let confirmed = send_data.confirmed;
 
@@ -285,7 +287,9 @@ impl SendingData {
                     Ok(response) => {
                         match response {
                             // expect a complete transmit
+                            
                             radio::Response::TxDone(ms) => {
+                                println!("session SendingData");
                                 let confirmed = self.confirmed;
                                 data_rxwindow1_timeout::<R, C, N>(
                                     Session::SendingData(self),
@@ -336,6 +340,7 @@ impl WaitingForRxWindow {
         match event {
             // we are waiting for a Timeout
             Event::TimeoutFired => {
+                println!("session WaitingForRxWindow1111");
                 let window = match &self.rx_window {
                     RxWindow::_1(_) => Window::_1,
                     RxWindow::_2(_) => Window::_2,
@@ -350,6 +355,7 @@ impl WaitingForRxWindow {
                     .handle_event(radio::Event::RxRequest(rx_config))
                 {
                     Ok(_) => {
+                        println!("session WaitingForRxWindow22222");
                         let window_close: u32 = 0;
                         (
                             WaitingForRx::from(self).into(),
@@ -401,9 +407,11 @@ impl WaitingForRx {
             // we are waiting for the async tx to complete
             Event::RadioEvent(radio_event) => {
                 // send the transmit request to the radio
+                println!("session WaitingForRx11111");
                 match shared.radio.handle_event(radio_event) {
                     Ok(response) => match response {
                         radio::Response::RxDone(_quality) => {
+                            println!("session WaitingForRx2222");
                             if let Ok(PhyPayload::Data(DataPayload::Encrypted(encrypted_data))) =
                                 lorawan_parse(shared.radio.get_received_packet(), C::default())
                             {
@@ -456,6 +464,7 @@ impl WaitingForRx {
                                                 &mut mac_cmds.mac_commands(),
                                             );
                                         }
+                                        println!("session WaitingForRx3333");
 
                                         shared.downlink = Some(super::Downlink::Data(decrypted));
 
@@ -491,6 +500,7 @@ impl WaitingForRx {
                             shared.region.get_rx_delay(&Frame::Data, &Window::_2)
                                 - shared.region.get_rx_delay(&Frame::Data, &Window::_1);
                         let t2 = t1 + time_between_windows;
+                        println!("session TimeoutFired1111");
                         // TODO: jump to RxWindow2 if t2 == now
                         (
                             WaitingForRxWindow {
