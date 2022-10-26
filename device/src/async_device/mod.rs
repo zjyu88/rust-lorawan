@@ -129,6 +129,7 @@ where
                 match lorawan_parse(self.radio_buffer.as_mut(), C::default()) {
                     Ok(PhyPayload::JoinAccept(JoinAcceptPayload::Encrypted(encrypted))) => {
                         let decrypt = encrypted.decrypt(credentials.appkey());
+                        self.region.process_join_accept(&decrypt);
                         if decrypt.validate_mic(credentials.appkey()) {
                             let data = SessionData::derive_new(&decrypt, devnonce, &credentials);
                             self.session.replace(data);
@@ -336,6 +337,7 @@ where
     /// provided buffer with data if received. Will return a RxTimeout error if no RX within
     /// the windows.
     async fn rx_with_timeout(&mut self, window_delay: u32) -> Result<(), Error<R>> {
+        println!("rx_with_timeout_inner");
         // The initial window configuration uses window 1 adjusted by window_delay and radio offset
         let mut window_open = (self.region.get_rx_delay(&Frame::Join, &Window::_1) as i32
             + window_delay as i32

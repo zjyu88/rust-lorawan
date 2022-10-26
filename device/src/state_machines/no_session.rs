@@ -174,6 +174,7 @@ impl Idle {
     }
 
     fn into_waiting_for_rxwindow(self, devnonce: DevNonce, time: u32) -> WaitingForRxWindow {
+        println!("into_waiting_for_rxwindow");
         WaitingForRxWindow {
             join_attempts: self.join_attempts + 1,
             join_rx_window: JoinRxWindow::_1(time),

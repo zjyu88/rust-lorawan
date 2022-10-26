@@ -6,7 +6,6 @@ edition = "2018"
 categories = [
     "embedded",
     "hardware-support",
-    "no-std",
 ]
 license = "Apache-2.0"
 readme = "README.md"
