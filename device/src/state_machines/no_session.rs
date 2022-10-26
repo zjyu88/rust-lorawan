@@ -123,6 +123,7 @@ impl Idle {
                     // send the transmit request to the radio
                     match shared.radio.handle_event(radio_event) {
                         Ok(response) => {
+                            println!("no_session handle_event radia event111");
                             match response {
                                 // intermediate state where we wait for Join to complete sending
                                 // allows for asynchronous sending
@@ -133,6 +134,7 @@ impl Idle {
                                 // directly jump to waiting for RxWindow
                                 // allows for synchronous sending
                                 radio::Response::TxDone(ms) => {
+                                    println!("no_session handle_event radia event333");
                                     let first_window =
                                         (shared.region.get_rx_delay(&Frame::Join, &Window::_1)
                                             as i32
@@ -167,6 +169,7 @@ impl Idle {
     }
 
     fn into_sending_join(self, devnonce: DevNonce) -> SendingJoin {
+        println!("into_sending_join");
         SendingJoin {
             join_attempts: self.join_attempts + 1,
             devnonce,
@@ -203,6 +206,7 @@ impl SendingJoin {
                         match response {
                             // expect a complete transmit
                             radio::Response::TxDone(ms) => {
+                                println!("no_session SendingJoin radia event2222");
                                 let first_window =
                                     (shared.region.get_rx_delay(&Frame::Join, &Window::_1) as i32
                                         + ms as i32
@@ -233,6 +237,7 @@ impl SendingJoin {
     }
 
     fn into_waiting_for_rxwindow(self, time: u32) -> WaitingForRxWindow {
+        println!("SendingJoin into_waiting_for_rxwindow");
         WaitingForRxWindow {
             join_attempts: self.join_attempts + 1,
             join_rx_window: JoinRxWindow::_1(time),
@@ -256,6 +261,7 @@ impl WaitingForRxWindow {
         match event {
             // we are waiting for a Timeout
             Event::TimeoutFired => {
+                println!("no_session WaitingForRxWindow TimeoutFired111");
                 let window = match &self.join_rx_window {
                     JoinRxWindow::_1(_) => Window::_1,
                     JoinRxWindow::_2(_) => Window::_2,
@@ -269,6 +275,7 @@ impl WaitingForRxWindow {
                     .handle_event(radio::Event::RxRequest(rx_config))
                 {
                     Ok(_) => {
+                        println!("no_session WaitingForRxWindow TimeoutFired2222");
                         let window_close: u32 = match self.join_rx_window {
                             // RxWindow1 one must timeout before RxWindow2
                             JoinRxWindow::_1(time) => {
@@ -309,6 +316,7 @@ impl WaitingForRxWindow {
 
 impl From<WaitingForRxWindow> for WaitingForJoinResponse {
     fn from(val: WaitingForRxWindow) -> WaitingForJoinResponse {
+        println!("no_session WaitingForJoinResponse");
         WaitingForJoinResponse {
             join_rx_window: val.join_rx_window,
             join_attempts: val.join_attempts,
@@ -336,6 +344,7 @@ impl WaitingForJoinResponse {
                 match shared.radio.handle_event(radio_event) {
                     Ok(response) => match response {
                         radio::Response::RxDone(_quality) => {
+                            println!("no_session WaitingForJoinResponse handle_event2222");
                             if let Ok(PhyPayload::JoinAccept(JoinAcceptPayload::Encrypted(
                                 encrypted,
                             ))) = lorawan_parse(shared.radio.get_received_packet(), C::default())
@@ -346,7 +355,9 @@ impl WaitingForJoinResponse {
                                         shared.downlink = Some(super::Downlink::Join(
                                             shared.region.process_join_accept(&decrypt),
                                         ));
+                                        println!("no_session WaitingForJoinResponse handle_event22222");
                                         if decrypt.validate_mic(credentials.appkey()) {
+                                            println!("no_session WaitingForJoinResponse handle_event33333");
                                             let session = SessionData::derive_new(
                                                 &decrypt,
                                                 self.devnonce,
@@ -359,6 +370,7 @@ impl WaitingForJoinResponse {
                                         }
                                     }
                                     None => {
+                                        println!("no_session WaitingForJoinResponse handle_event4444");
                                         return (
                                             self.into(),
                                             Err(Error::DeviceDoesNotHaveOtaaCredentials.into()),
@@ -385,6 +397,7 @@ impl WaitingForJoinResponse {
                             shared.region.get_rx_delay(&Frame::Join, &Window::_2)
                                 - shared.region.get_rx_delay(&Frame::Join, &Window::_1);
                         let t2 = t1 + time_between_windows;
+                        println!("no_session TimeoutFired1111");
                         // TODO: jump to RxWindow2 if t2 == now
                         (
                             WaitingForRxWindow {
