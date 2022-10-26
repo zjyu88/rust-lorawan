@@ -350,21 +350,7 @@ impl WaitingForRxWindow {
                     .handle_event(radio::Event::RxRequest(rx_config))
                 {
                     Ok(_) => {
-                        let window_close: u32 = match self.rx_window {
-                            // RxWindow1 one must timeout before RxWindow2
-                            RxWindow::_1(time) => {
-                                let time_between_windows =
-                                    shared.region.get_rx_delay(&Frame::Data, &Window::_2)
-                                        - shared.region.get_rx_delay(&Frame::Data, &Window::_1);
-                                if time_between_windows > shared.radio.get_rx_window_duration_ms() {
-                                    time + shared.radio.get_rx_window_duration_ms()
-                                } else {
-                                    time + time_between_windows
-                                }
-                            }
-                            // RxWindow2 can last however long
-                            RxWindow::_2(time) => time + shared.radio.get_rx_window_duration_ms(),
-                        };
+                        let window_close: u32 = 0;
                         (
                             WaitingForRx::from(self).into(),
                             Ok(Response::TimeoutRequest(window_close)),
